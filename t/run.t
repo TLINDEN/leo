@@ -1,5 +1,5 @@
 # -*-perl-*-
-# testscript for WWW::Dict::Leo::Org Class by Thomas Linden
+# testscript for WWW::Dict::Leo::Org Class by Thomas v.D.
 
 use Test::More qw(no_plan);
 

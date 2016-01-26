@@ -1,13 +1,13 @@
 #
-# Copyleft (l) 2000-2014 Thomas Linden <tom@daemon.de>.
-#                   2014 Thomas von Dein <tom@vondein.org>.
+# Copyleft (l) 2000-2016 Thomas v.D. <tlinden@cpan.org>.
+#
 # leo may be
 # used and distributed under the terms of the GNU General Public License.
 # All other brand and product names are trademarks, registered trademarks
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = 1.39;
+$WWW::Dict::Leo::Org::VERSION = 1.40;
 
 use strict;
 use warnings;
@@ -211,19 +211,17 @@ Accept-Language: en_US, en\r\n);
 	croak "proxy auth required or access denied!\n";
       }
       else {
-	croak "got HTTP error $err!\n";
+	if ($site =~ /Leider konnten wir zu Ihrem Suchbegriff/ ||
+	    $site =~ /found no matches for your search/
+	   ) {
+	  return ();
+	}
+	else {
+	  croak "got HTTP error $err!\n";
+	}
       }
     }
   }
-
-  if ($site =~ /produced\s+no\s+results\s+for\s+the\s+selected/
-      || $site =~ /Die\s+Suche\s+nach.*lieferte\skeine/) {
-    return ();
-  }
-
-  #$site =~ s/(<table[^>]*>)/\n$1\n/g;
-  #$site =~ s/(<\/table[^>]*>)/\n$1\n/g;
-  #print $site;
 
   my @request = (
 		 {
@@ -526,16 +524,14 @@ L<leo>
 
 =head1 COPYRIGHT
 
-WWW::Dict::Leo::Org -
-Copyright (c) 2007-2014 by Thomas Linden
-Copyright (c) 2014 by Thomas von Dein
+WWW::Dict::Leo::Org - Copyright (c) 2007-2016 by Thomas v.D.
 
 L<http://dict.leo.org/> -
-Copyright (c) 1995-2014 LEO Dictionary Team.
+Copyright (c) 1995-2016 LEO Dictionary Team.
 
 =head1 AUTHOR
 
-Thomas Linden <tlinden@cpan.org>
+Thomas v.D. <tlinden@cpan.org>
 
 =head1 HOW TO REPORT BUGS
 
@@ -545,6 +541,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.39
+1.40
 
 =cut

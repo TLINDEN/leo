@@ -10,12 +10,12 @@
 #
 # $Id: leo,v 1.33 2008/04/22 22:23:39 scip Exp $
 #
-# Copyleft (l) 2000-2014 by Thomas Linden <tom@daemon.de>. leo may be
+# Copyleft (l) 2000-2016 by Thomas v.D. <tlinden@cpan.org>. leo may be
 # used and distributed under the terms of the GNU General Public License.
 # All other brand and product names are trademarks, registered trademarks
 # or service marks of their respective holders.
 
-use lib qw(blib/lib);
+#use lib qw(blib/lib);
 #use Org;
 
 use utf8;
@@ -298,8 +298,8 @@ foreach my $section (@match) {
 
 print "$copy_c" if $highlight;
 print "\n     Fetched by leo $version via http://dict.leo.org/";
-print "\n     Copyright (C) LEO  Dictionary Team 1995-2014";
-print "\n     [leo] GPL Copyleft   Thomas Linden 2000-2014\n\n";
+print "\n     Copyright (C) LEO  Dictionary Team 1995-2016";
+print "\n     [leo] GPL Copyleft   Thomas v.D. 2000-2016\n\n";
 print "$default_c" if $highlight;
 
 
@@ -589,7 +589,7 @@ the password will be read from STDIN.
 
 =head1 AUTHOR
 
-Thomas Linden <tom@daemon.de>.
+Thomas v.D. <tlinden@cpan.org>
 
 
 =head1 BUGS
@@ -607,9 +607,9 @@ to me, thanks.
 
 =head1 COPYRIGHT
 
-B<leo> copyleft 2000-2014 Thomas Linden. All rights reserved.
+B<leo> copyleft 2000-2016 Thomas v.D.. All rights reserved.
 
-http://dict.leo.org/ copyright (c) 1995-2014 LEO Dictionary Team.
+http://dict.leo.org/ copyright (c) 1995-2016 LEO Dictionary Team.
 
 
 The search results returned by B<leo> are based on the work
