@@ -1,11 +1,13 @@
 #
-# Copyleft (l) 2000-2014 by Thomas Linden <tom@daemon.de>. leo may be
+# Copyleft (l) 2000-2014 Thomas Linden <tom@daemon.de>.
+#                   2014 Thomas von Dein <tom@vondein.org>.
+# leo may be
 # used and distributed under the terms of the GNU General Public License.
 # All other brand and product names are trademarks, registered trademarks
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = 1.37;
+$WWW::Dict::Leo::Org::VERSION = 1.39;
 
 use strict;
 use warnings;
@@ -223,12 +225,24 @@ Accept-Language: en_US, en\r\n);
   #$site =~ s/(<\/table[^>]*>)/\n$1\n/g;
   #print $site;
 
-  my @request = ({
+  my @request = (
+		 {
+		  id  => 2,
+		  row => sub { $this->row(@_); },
+		  hdr => sub { $this->hdr(@_); }
+		  },
+		 {
 		  id  => 3,
+		  hdr => sub { $this->hdr(@_); },
 		  row => sub { $this->row(@_); }
-		  }
-		 );
-  $this->{Linecount} = 1;
+		},
+		 {
+		  id  => 4,
+		  hdr => sub { $this->hdr(@_); },
+		  row => sub { $this->row(@_); }
+		 }
+		);
+  $this->{Linecount} = 0;
   my $p = HTML::TableParser->new( \@request,
 				  { Decode => 1, Trim => 1, Chomp => 1, DecodeNBSP => 1 } );
   $site=~s/&#160;/\&nbsp\;/g;
@@ -246,19 +260,12 @@ Accept-Language: en_US, en\r\n);
     push @matches, { title => $title, data => $this->{data}->{$title} };
   }
 
-
   return @matches;
 }
 
 
-sub row {
-  #
-  # divide rows into titles and lang data.
-  # rows with the last one of 5 defined and
-  # where the last and the pre-last are qual
-  # are titles.
+sub hdr {
   my ( $this, $tbl_id, $line_no, $data, $udata ) = @_;
-
   if ($data->[1] && $data->[0] eq $data->[1]) {
     $this->debug("Probable start of a new section: $data->[1]");
     if (@{$this->{section}}) {
@@ -269,7 +276,19 @@ sub row {
     $this->{title} = $data->[1];
     $this->{section} = [];
   }
-  else {
+}
+
+sub row {
+  #
+  # divide rows into titles and lang data.
+  # we get 2 items (left and right column), if they
+  # are equal, it's a segment title, otherwise it's
+  # segment content. left columns ending in HH:MM
+  # are forumposts and ignored as well as rows with
+  # empty left cells.
+  my ( $this, $tbl_id, $line_no, $data, $udata ) = @_;
+
+  if ($data->[1] && $data->[0] && $data->[0] ne $data->[1] && $data->[0] !~ /\d{2}:\d{2}$/) {
     if (length($data->[0]) > $this->{Maxsize}) {
       $this->{Maxsize} = length($data->[0]);
     }
@@ -304,6 +323,8 @@ sub debug {
 
 
 1;
+
+=encoding ISO8859-1
 
 =head1 NAME
 
@@ -507,6 +528,7 @@ L<leo>
 
 WWW::Dict::Leo::Org -
 Copyright (c) 2007-2014 by Thomas Linden
+Copyright (c) 2014 by Thomas von Dein
 
 L<http://dict.leo.org/> -
 Copyright (c) 1995-2014 LEO Dictionary Team.
@@ -523,6 +545,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.35
+1.39
 
 =cut

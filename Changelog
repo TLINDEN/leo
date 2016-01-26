@@ -1,3 +1,16 @@
+1.39:
+
+fixed rt.cpan.org#91464: disable caching if DB_File is not found.
+
+1.38:
+
+fixed rt.cpan.org#92944, missed translations. The problem was,
+that the pda.leo.org uses a differnt number of tables depending
+on the translation. So, now we just fetch all tables (2-4) and
+ignore those which are not translations (forum posts or empty cells).
+
+Applied patch rt.cpan.org#92914 (POD locale encoding).
+
 1.37:
 
 fixed rt.cpan.org#92679, the site url and table structure

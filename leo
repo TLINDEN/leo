@@ -37,7 +37,7 @@ my $default_c = "\033[0m";    # reset default terminal color
 my $bold_c    = "\033[0;34m"; # blue color
 my $copy_c    = "\033[0;35m"; # copyright message color (green)
 
-my $version   = "1.37";
+my $version   = "1.39";
 my $config    = $ENV{HOME} . "/.leo";
 my $cache     = $ENV{HOME} . "/.leo-CACHE.db";
 
@@ -156,7 +156,13 @@ elsif ($conf{use_color} eq "yes") {
 # open the cache, if wanted
 #
 if ($conf{use_cache} eq "yes") {
-  dbmopen(%CACHE, $cache, 0600) or $conf{use_cache} = "no";
+  eval { require DB_FileX; };
+  if ($@) {
+    $conf{use_cache} = "no";
+  }
+  else {
+    dbmopen(%CACHE, $cache, 0600) or $conf{use_cache} = "no";
+  }
 }
 
 my %PARAM;
@@ -626,6 +632,6 @@ browser, what is not prohibited. At least not today.
 
 =head1 VERSION
 
-This is the manpage for B<leo> version B<1.36>.
+This is the manpage for B<leo> version B<1.39>.
 
 =cut
