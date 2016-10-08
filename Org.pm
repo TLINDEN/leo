@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "1.41";
+$WWW::Dict::Leo::Org::VERSION = "1.42";
 
 use strict;
 use warnings;
@@ -260,6 +260,7 @@ Accept-Language: en_US, en\r\n);
 
 
 sub hdr {
+  # HTML::TableParser header callback
   my ( $this, $tbl_id, $line_no, $data, $udata ) = @_;
   if ($data->[1] && $data->[0] eq $data->[1]) {
     $this->debug("Probable start of a new section: $data->[1]");
@@ -274,6 +275,7 @@ sub hdr {
 }
 
 sub row {
+  # HTML::TableParser data row callback
   #
   # divide rows into titles and lang data.
   # we get 2 items (left and right column), if they
@@ -282,10 +284,10 @@ sub row {
   # are forumposts and ignored as well as rows with
   # empty left cells.
   my ( $this, $tbl_id, $line_no, $data, $udata ) = @_;
-
+  my $len = length($data->[0]);
   if ($data->[1] && $data->[0] && $data->[0] ne $data->[1] && $data->[0] !~ /\d{2}:\d{2}$/) {
-    if (length($data->[0]) > $this->{Maxsize}) {
-      $this->{Maxsize} = length($data->[0]);
+    if ($len > $this->{Maxsize}) {
+      $this->{Maxsize} = $len;
     }
     $this->debug("line: $line_no, left:  $data->[0], right: $data->[1]");
     push @{$this->{section}}, { left => $data->[0], right => $data->[1] };
@@ -293,6 +295,12 @@ sub row {
   }
 }
 
+sub grapheme_length {
+  my($this, $str) = @_;
+  my $count = 0;
+  while ($str =~ /\X/g) { $count++ };
+  return $count;
+}
 
 sub maxsize {
   my($this) = @_;
@@ -534,6 +542,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.41
+1.42
 
 =cut

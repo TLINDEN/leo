@@ -1,3 +1,8 @@
+1.42:
+
+Better tabluar output (better column calc). However, russian
+grapheme length is still wrong.
+
 1.41:
 
 Generalized lang parsing and passing to dict.leo.org, which

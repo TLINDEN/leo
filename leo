@@ -14,7 +14,6 @@
 # or service marks of their respective holders.
 
 #use lib qw(blib/lib);
-#use Org;
 
 use utf8;
 
@@ -35,7 +34,7 @@ my $default_c = "\033[0m";    # reset default terminal color
 my $bold_c    = "\033[0;34m"; # blue color
 my $copy_c    = "\033[0;35m"; # copyright message color (green)
 
-my $version   = "1.41";
+my $version   = "1.42";
 my $config    = $ENV{HOME} . "/.leo";
 my $cache     = $ENV{HOME} . "/.leo-CACHE.db";
 
@@ -267,6 +266,10 @@ if(! @match) {
 $maxsize += 5;
 print "Found $lines matches for '$string' on dict.leo.org:\n";
 
+my $fmt;
+my $c = "\$fmt = \" %-${maxsize}s %s\n\"";
+eval $c;
+
 #
 # print it out in a formated manner, keep the order of dict.leo.org
 #
@@ -281,7 +284,6 @@ foreach my $section (@match) {
   }
 
   foreach my $entry (@{$section->{data}}) {
-    $entry->{left} =~ s/^(.*)$/$1 . " " x ($maxsize - length($1))/e;
     if ($conf{use_latin}) {
       utf8::decode($entry->{left});
       utf8::decode($entry->{right});
@@ -290,7 +292,7 @@ foreach my $section (@match) {
       $entry->{left}  =~ s/(\Q$string\E)/$bold_c . $1 . $default_c/ei;
       $entry->{right} =~ s/(\Q$string\E)/$bold_c . $1 . $default_c/ei;
     }
-    print " $entry->{left}$entry->{right}\n";
+    printf $fmt, $entry->{left}, $entry->{right};
   }
 }
 
@@ -667,6 +669,6 @@ browser, what is not prohibited. At least not today.
 
 =head1 VERSION
 
-This is the manpage for B<leo> version B<1.41>.
+This is the manpage for B<leo> version B<1.42>.
 
 =cut
