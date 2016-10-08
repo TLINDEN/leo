@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "1.40";
+$WWW::Dict::Leo::Org::VERSION = "1.41";
 
 use strict;
 use warnings;
@@ -63,34 +63,31 @@ sub translate {
   my @match     = ();
 
   #
-  # form var transitions for searchLoc
-  #
-  my %lang = (
-	      de2en => 1,
-	      en2de => -1,
-	      de2fr => 1,
-	      fr2de => -1,
-              es2de => -1,
-              de2es => 1,
-              es    => 0,
-	      en    => 0,
-	      fr    => 0,
-	      speak => "ende"
-	     );
+  # form var transitions for searchLoc(=translation direction) and lp(=language)
+  my %lang = ( speak => "ende" );
 
+  my @langs = qw(en es ru pt fr pl ch it);
   if ($this->{"-Language"}) {
-    if ($this->{"-Language"} =~ /fr/) {
-      # used for francaise translation
-      $lang{speak} = "frde";
+    # en | fr | ru2en | de2pl etc
+    # de2, 2de, de are not part of lang spec
+    if (! grep { $this->{"-Language"} =~ /$_/ } @langs) {
+      croak "Unsupported language: " . $this->{"-Language"};
     }
-    elsif ($this->{"-Language"} =~ /es/) {
-      $lang{speak} = "esde";
+    my $spec = $this->{"-Language"};
+    my $l;
+    if ($spec =~ /(..)2de/) {
+      $l = $1;
+      $this->{"-Language"} = -1;
+      $lang{speak} = "${l}de";
     }
-    if (exists $lang{$this->{"-Language"}}) {
-      $this->{"-Language"} = $lang{$this->{"-Language"}};
+    elsif ($spec =~ /de2(..)/) {
+      $l = $1;
+      $this->{"-Language"} = 1;
+      $lang{speak} = "${l}de";
     }
     else {
-      croak "Unsupported language: " . $this->{"-Language"};
+      $lang{speak} =  $this->{"-Language"} . 'de';
+      $this->{"-Language"} = 0;
     }
   }
 
@@ -98,11 +95,11 @@ sub translate {
   # cut invalid values for parameters or set defaults if unspecified
   #
   my %form = (
-	      spellToler => { mask => [ qw(standard on off) ],         val => $this->{"-SpellTolerance"} || "standard" },
-	      deStem     => { mask => [ qw(standard none forcedAll) ], val => $this->{"-Morphology"}     || "standard" },
-	      cmpType    => { mask => [ qw(fuzzy exact relaxed) ],     val => $this->{"-CharTolerance"}  || "relaxed"  },
-	      searchLoc  => { mask => [ qw(-1 0 1) ],                  val => $this->{"-Language"}       || "0"        },
-	      );
+              spellToler => { mask => [ qw(standard on off) ],         val => $this->{"-SpellTolerance"} || "standard" },
+              deStem     => { mask => [ qw(standard none forcedAll) ], val => $this->{"-Morphology"}     || "standard" },
+              cmpType    => { mask => [ qw(fuzzy exact relaxed) ],     val => $this->{"-CharTolerance"}  || "relaxed"  },
+              searchLoc  => { mask => [ qw(-1 0 1) ],                  val => $this->{"-Language"}       || "0"        },
+             );
   my @form;
   foreach my $var (keys %form) {
     if (grep { $form{$var}->{val} eq $_ } @{$form{$var}->{mask}}) {
@@ -166,10 +163,10 @@ sub translate {
   }
 
   my $conn = new IO::Socket::INET(
-				  Proto    => "tcp",
-				  PeerAddr => $ip,
-				  PeerPort => $port,
-				 ) or die "Unable to connect to $ip:$port: $!\n";
+                                  Proto    => "tcp",
+                                  PeerAddr => $ip,
+                                  PeerPort => $port,
+                                 ) or die "Unable to connect to $ip:$port: $!\n";
   $conn->autoflush(1);
 
   $this->debug( "GET $url?$form HTTP/1.0");
@@ -208,41 +205,41 @@ Accept-Language: en_US, en\r\n);
       # got HTTP error
       my $err = $2;
       if ($err == 407) {
-	croak "proxy auth required or access denied!\n";
+        croak "proxy auth required or access denied!\n";
       }
       else {
-	if ($site =~ /Leider konnten wir zu Ihrem Suchbegriff/ ||
-	    $site =~ /found no matches for your search/
-	   ) {
-	  return ();
-	}
-	else {
-	  croak "got HTTP error $err!\n";
-	}
+        if ($site =~ /Leider konnten wir zu Ihrem Suchbegriff/ ||
+            $site =~ /found no matches for your search/
+           ) {
+          return ();
+        }
+        else {
+          croak "got HTTP error $err!\n";
+        }
       }
     }
   }
 
   my @request = (
-		 {
-		  id  => 2,
-		  row => sub { $this->row(@_); },
-		  hdr => sub { $this->hdr(@_); }
-		  },
-		 {
-		  id  => 3,
-		  hdr => sub { $this->hdr(@_); },
-		  row => sub { $this->row(@_); }
-		},
-		 {
-		  id  => 4,
-		  hdr => sub { $this->hdr(@_); },
-		  row => sub { $this->row(@_); }
-		 }
-		);
+                 {
+                  id  => 2,
+                  row => sub { $this->row(@_); },
+                  hdr => sub { $this->hdr(@_); }
+                 },
+                 {
+                  id  => 3,
+                  hdr => sub { $this->hdr(@_); },
+                  row => sub { $this->row(@_); }
+                 },
+                 {
+                  id  => 4,
+                  hdr => sub { $this->hdr(@_); },
+                  row => sub { $this->row(@_); }
+                 }
+                );
   $this->{Linecount} = 0;
   my $p = HTML::TableParser->new( \@request,
-				  { Decode => 1, Trim => 1, Chomp => 1, DecodeNBSP => 1 } );
+                                  { Decode => 1, Trim => 1, Chomp => 1, DecodeNBSP => 1 } );
   $site=~s/&#160;/\&nbsp\;/g;
   $p->parse($site);
 
@@ -418,35 +415,31 @@ Possible values: fuzzy, exact, relaxed.
 =item I<-Language>
 
 Translation direction. Please note that dict.leo.org always translates
-either to or from german. The following values can be used:
+either to or from german.
 
-=over
+The following languages are supported: english, polish, spanish, portugese
+russian and chinese.
 
-=item de
+You can  specify only the country  code, or append B<de2>  in order to
+force translation to german, or  preprend B<de2> in order to translate
+to the other language.
 
-Alias for B<de2en> - german to english.
+Valid examples:
 
-=item fr
+ ru     to or from russian
+ de2pl  to polish
+ es2de  spanish to german
 
-Alias for B<de2fr> - german to french.
+Valid country codes:
 
-=item es
+ en    english
+ es    spanish
+ ru    russian
+ pt    portugese
+ pl    polish
+ ch    chinese
 
-Alias for B<de2es> - german to espaniol.
-
-=item en2de
-
-english to german.
-
-=item fr2de
-
-french to german.
-
-=item es2de
-
-espaniol to german.
-
-=back
+Default: B<en>.
 
 =back
 
@@ -458,48 +451,48 @@ Use this method after initialization to connect to dict.leo.org
 and translate the given term. It returns an array of hashes containing
 the actual results.
 
- use WWW::Dict::Leo::Org;
- use Data::Dumper;
- my $leo = new WWW::Dict::Leo::Org();
- my @matches = $leo->translate("test");
- print Dumper(\@matches);
+use WWW::Dict::Leo::Org;
+use Data::Dumper;
+my $leo = new WWW::Dict::Leo::Org();
+my @matches = $leo->translate("test");
+print Dumper(\@matches);
 
 which prints:
 
  $VAR1 = [
+         {
+          'data' => [
+                     {
+                      'left' => 'check',
+                      'right' => 'der Test'
+                     },
+                     {
+                      'left' => 'quiz (Amer.)',
+                      'right' => 'der Test    [Schule]'
+                     ],
+                     'title' => 'Unmittelbare Treffer'
+                   },
           {
-            'data' => [
-                        {
-                          'left' => 'check',
-                          'right' => 'der Test'
-                        },
-                        {
-                          'left' => 'quiz (Amer.)',
-                          'right' => 'der Test    [Schule]'
-                      ],
-            'title' => 'Unmittelbare Treffer'
+           'data' => [
+                      {
+                       'left' => 'to fail a test',
+                       'right' => 'einen Test nicht bestehen'
+                      },
+                      {
+                       'left' => 'to test',
+                       'right' => 'Tests macheneinen Test machen'
+                      }
+                     ],
+           'title' => 'Verben und Verbzusammensetzungen'
           },
-          {
-            'data' => [
-                        {
-                          'left' => 'to fail a test',
-                          'right' => 'einen Test nicht bestehen'
-                        },
-                        {
-                          'left' => 'to test',
-                          'right' => 'Tests macheneinen Test machen'
-                        }
-                      ],
-            'title' => 'Verben und Verbzusammensetzungen'
-          },
-            'data' => [
-                        {
-                          'left' => 'testing  adj.',
-                          'right' => 'im Test'
-                        }
-                      ],
-            'title' => 'Wendungen und Ausdrücke'
-          }
+          'data' => [
+                     {
+                      'left' => 'testing  adj.',
+                      'right' => 'im Test'
+                     }
+                    ],
+          'title' => 'Wendungen und Ausdrücke'
+         }
         ];
 
 
@@ -541,6 +534,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.40
+1.41
 
 =cut

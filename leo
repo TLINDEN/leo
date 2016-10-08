@@ -8,8 +8,6 @@
 # the term to be translated. It will then return the results in
 # an unformatted form.
 #
-# $Id: leo,v 1.33 2008/04/22 22:23:39 scip Exp $
-#
 # Copyleft (l) 2000-2016 by Thomas v.D. <tlinden@cpan.org>. leo may be
 # used and distributed under the terms of the GNU General Public License.
 # All other brand and product names are trademarks, registered trademarks
@@ -37,7 +35,7 @@ my $default_c = "\033[0m";    # reset default terminal color
 my $bold_c    = "\033[0;34m"; # blue color
 my $copy_c    = "\033[0;35m"; # copyright message color (green)
 
-my $version   = "1.39";
+my $version   = "1.41";
 my $config    = $ENV{HOME} . "/.leo";
 my $cache     = $ENV{HOME} . "/.leo-CACHE.db";
 
@@ -45,10 +43,10 @@ my $debugging = 0;
 
 #defaults for config
 my %conf      = (
-		 use_cache => "no",
-		 use_color => "yes",
-		 use_latin => "yes"
-		 );
+                 use_cache => "no",
+                 use_color => "yes",
+                 use_latin => "yes"
+                );
 
 my %validopts = qw(use_cache 0 use_color 0 user_agent 0 use_latin 0);
 my %line      = %validopts;
@@ -68,17 +66,17 @@ isatty(1) && eval q{ use open OUT => ':locale'};
 #
 Getopt::Long::Configure( qw(no_ignore_case));
 if (! GetOptions (
-		  "spelltolerance|s=s" => \$o_s,
-		  "morphology|m=s"     => \$o_m,
-		  "chartolerance|c=s"  => \$o_c,
-		  "language|l=s"       => \$o_l,
-		  "force|f"            => \$o_f,
-		  "version|v"          => \$o_v,
-		  "help|h"             => \$o_h,
-		  "debug|d"            => \$o_d,
-		  "noescapechars|n"    => \$o_n,
-		  "user|u=s"           => \$o_u,
-		  "passwd|p=s"         => \$o_p
+                  "spelltolerance|s=s" => \$o_s,
+                  "morphology|m=s"     => \$o_m,
+                  "chartolerance|c=s"  => \$o_c,
+                  "language|l=s"       => \$o_l,
+                  "force|f"            => \$o_f,
+                  "version|v"          => \$o_v,
+                  "help|h"             => \$o_h,
+                  "debug|d"            => \$o_d,
+                  "noescapechars|n"    => \$o_n,
+                  "user|u=s"           => \$o_u,
+                  "passwd|p=s"         => \$o_p
                  )    ) {
   &usage;
 }
@@ -137,7 +135,8 @@ if (-e $config) {
 foreach my $opt (keys %conf) {
   if (!exists $validopts{$opt}) {
     print "<$opt>\n";
-    print STDERR "Error in config $config line: " . $line{$opt} . ". Unsupported option \"$opt\"!\n";
+    print STDERR "Error in config $config line: " .
+      $line{$opt} . ". Unsupported option \"$opt\"!\n";
     exit;
   }
 }
@@ -205,28 +204,28 @@ if($o_c) {
 }
 
 if (exists $ENV{http_proxy} and $o_u) {
-    # authenticate
-    if (! $o_p) {
-      # ask for it
-      my $proxy_pass;
-      local $| = 1;
-      print "password: ";
-      eval {
-	local($|) = 1;
-	local(*TTY);
-	open(TTY,"/dev/tty") or die "No /dev/tty!";
-	system ("stty -echo </dev/tty") and die "stty failed!";
-	chomp($proxy_pass = <TTY>);
-	print STDERR "\r\n";
-	system ("stty echo </dev/tty") and die "stty failed!";
-	close(TTY);
-      };
-      if ($@) {
-	$proxy_pass = <>;
-      }
-      chomp $proxy_pass;
-      $PARAM{"-ProxyPass"} = $proxy_pass;
+  # authenticate
+  if (! $o_p) {
+    # ask for it
+    my $proxy_pass;
+    local $| = 1;
+    print "password: ";
+    eval {
+      local($|) = 1;
+      local(*TTY);
+      open(TTY,"/dev/tty") or die "No /dev/tty!";
+      system ("stty -echo </dev/tty") and die "stty failed!";
+      chomp($proxy_pass = <TTY>);
+      print STDERR "\r\n";
+      system ("stty echo </dev/tty") and die "stty failed!";
+      close(TTY);
+    };
+    if ($@) {
+      $proxy_pass = <>;
     }
+    chomp $proxy_pass;
+    $PARAM{"-ProxyPass"} = $proxy_pass;
+  }
 }
 
 my (@match, $lines, $maxsize);
@@ -246,7 +245,7 @@ if(exists $CACHE{$cache_key} && $conf{use_cache} eq "yes") {
 }
 else {
   my $leo = new WWW::Dict::Leo::Org(%PARAM) or
-     die "Could not initialize WWW::Dict::Leo::Org: $!\n";
+    die "Could not initialize WWW::Dict::Leo::Org: $!\n";
   @match   = $leo->translate($string);
   $lines   = $leo->lines();
   $maxsize = $leo->maxsize();
@@ -328,19 +327,36 @@ Translate a term from german to english or vice versa.
   -s, --spelltolerance=on|off                   allow spelling errors
   -m, --morphology=none|forcedAll               provide morphology information
   -c, --chartolerance=fuzzy|exact               allow umlaut alternatives
-  -l, --language=en|fr|de2(en|fr)|(en|fr)2de    translation direction
-  -n, --noescapechars                           dont use escapes for highlighting
-  -f, --force                                   don't use the query cache
-  -u, --user=username                           user for proxy authentication
-  -p, --passwd=password                         cleartext passphrase for proxy authentication
-  -h, --help                                    display this help and exit
-  -d, --debug                                   enable debugging output
-  -v, --version                                 output version information and exit
+  -l, --language=[de2]<countrycode>[2de]        translation direction
+-n, --noescapechars                           dont use escapes for highlighting
+-f, --force                                   don't use the query cache
+-u, --user=username                           user for proxy authentication
+-p, --passwd=password                         cleartext passphrase for proxy authentication
+-h, --help                                    display this help and exit
+-d, --debug                                   enable debugging output
+-v, --version                                 output version information and exit
 
 <term> is the string you are asking to be translated. It will
 be requested from STDIN if not specified on the commandline.
 
-Report bugs to <tom\@daemon.de>.
+Supported <countrycode>s are:
+
+en    english
+es    spanish
+ru    russian
+pt    portugese
+pl    polish
+ch    chinese
+
+You can  specify only the country  code, or append B<de2>  in order to
+force translation to german, or  preprend B<de2> in order to translate
+to the other language. Valid examples:
+
+ru     to or from russian
+de2pl  to polish
+es2de  spanish to german
+
+Report bugs to <tlinden\@cpan.org>.
 );
 
   exit 1;
@@ -412,11 +428,30 @@ Default: B<relaxed>.
 
 =item I<-l --language>
 
-Translation direction.
+Translation direction. Please note that dict.leo.org always translates
+either to or from german.
 
-Possible values: B<en>, B<fr>, B<de2en>, B<en2de>, B<de2fr> or B<fr2de>.
+The following languages are supported: english, polish, spanish, portugese
+russian and chinese.
 
-B<en> and B<fr> do select the translation direction automatically.
+You can  specify only the country  code, or append B<de2>  in order to
+force translation to german, or  preprend B<de2> in order to translate
+to the other language.
+
+Valid examples:
+
+ru     to or from russian
+de2pl  to polish
+es2de  spanish to german
+
+Valid country codes:
+
+en    english
+es    spanish
+ru    russian
+pt    portugese
+pl    polish
+ch    chinese
 
 Default: B<en>.
 
@@ -521,7 +556,7 @@ The config option has higher precedence.
 You may modify the user agent as B<leo> identifies itself
 on the target site. The default is:
 
- User-Agent: Mozilla/5.0 (compatible; Konqueror/3.3.1; X11)
+User-Agent: Mozilla/5.0 (compatible; Konqueror/3.3.1; X11)
 
 =back
 
@@ -534,11 +569,11 @@ translation option settings.
 
 If you, for example, execute once the following query:
 
- % leo langnase
+% leo langnase
 
 and somewhere later:
 
- % leo -c exact
+% leo -c exact
 
 then B<leo> will treat the latter query as a different
 one than the previous one, because I<dict.leo.org>
@@ -552,7 +587,7 @@ B<leo> can be used with a HTTP proxy service. For this to
 work, you only have to set the environment variable
 B<http_proxy>. It has the following format:
 
- PROTO://[USER:PASSWD@]SERVER[:PORT]
+PROTO://[USER:PASSWD@]SERVER[:PORT]
 
 The only supported protocol is B<http>. If your proxy works without
 authentication, you can omit the B<user:passwd> part. If no
@@ -560,11 +595,11 @@ port is specified, B<80> will be used.
 
 Here is an example (for bash):
 
- export http_proxy=http://172.16.120.120:3128
+export http_proxy=http://172.16.120.120:3128
 
 and an example with authentication credentials:
 
- export http_proxy=http://max:34dwe2@172.16.120.120:3128
+export http_proxy=http://max:34dwe2@172.16.120.120:3128
 
 As security is always important, I have to warn you, that
 other users on the same machine can read your environment
@@ -583,8 +618,8 @@ the password will be read from STDIN.
 
 =head1 FILES
 
- ~/.leo             the config file for leo. Not required.
- ~/.leo-CACHE.db*   the cache file.
+~/.leo             the config file for leo. Not required.
+~/.leo-CACHE.db*   the cache file.
 
 
 =head1 AUTHOR
@@ -632,6 +667,6 @@ browser, what is not prohibited. At least not today.
 
 =head1 VERSION
 
-This is the manpage for B<leo> version B<1.39>.
+This is the manpage for B<leo> version B<1.41>.
 
 =cut

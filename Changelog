@@ -1,3 +1,13 @@
+1.41:
+
+Generalized lang parsing and passing to dict.leo.org, which
+also adds support for new languages like ru, ch or pl. Thanks
+to J.A.Eichler.
+
+1.40:
+
+not logged, sorry.
+
 1.39:
 
 fixed rt.cpan.org#91464: disable caching if DB_File is not found.
