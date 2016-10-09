@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "1.42";
+$WWW::Dict::Leo::Org::VERSION = "1.43";
 
 use strict;
 use warnings;
@@ -467,41 +467,41 @@ print Dumper(\@matches);
 
 which prints:
 
- $VAR1 = [
-         {
-          'data' => [
-                     {
-                      'left' => 'check',
-                      'right' => 'der Test'
-                     },
-                     {
-                      'left' => 'quiz (Amer.)',
-                      'right' => 'der Test    [Schule]'
-                     ],
-                     'title' => 'Unmittelbare Treffer'
-                   },
-          {
-           'data' => [
-                      {
-                       'left' => 'to fail a test',
-                       'right' => 'einen Test nicht bestehen'
-                      },
-                      {
-                       'left' => 'to test',
-                       'right' => 'Tests macheneinen Test machen'
-                      }
-                     ],
-           'title' => 'Verben und Verbzusammensetzungen'
-          },
-          'data' => [
-                     {
-                      'left' => 'testing  adj.',
-                      'right' => 'im Test'
-                     }
-                    ],
-          'title' => 'Wendungen und Ausdrücke'
-         }
-        ];
+$VAR1 = [
+{
+'data' => [
+{
+'left' => 'check',
+'right' => 'der Test'
+},
+{
+'left' => 'quiz (Amer.)',
+'right' => 'der Test    [Schule]'
+],
+'title' => 'Unmittelbare Treffer'
+},
+{
+'data' => [
+{
+'left' => 'to fail a test',
+'right' => 'einen Test nicht bestehen'
+},
+{
+'left' => 'to test',
+'right' => 'Tests macheneinen Test machen'
+}
+],
+'title' => 'Verben und Verbzusammensetzungen'
+},
+'data' => [
+{
+'left' => 'testing  adj.',
+'right' => 'im Test'
+}
+],
+'title' => 'Wendungen und Ausdrücke'
+}
+];
 
 
 You might take a look at the B<leo> script how to process
@@ -542,6 +542,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.42
+1.43
 
 =cut
