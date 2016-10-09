@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "1.43";
+$WWW::Dict::Leo::Org::VERSION = "1.44";
 
 use strict;
 use warnings;
@@ -24,25 +24,24 @@ sub new {
   my ($class, %param) = @_;
   my $type = ref( $class ) || $class;
 
-  my %settings = (
-    "-Host" => "pda.leo.org",
-    "-Port" => 80,
-    "-UserAgent" => "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.8.1.9) Gecko/20071025 Firefox/2.0.0.9",
-    "-Proxy" => "",
-    "-ProxyUser" => "",
-    "-ProxyPass" => "",
-    "-Debug" => 0,
+  my %settings        = (
+    "-Host"           => "pda.leo.org",
+    "-Port"           => 80,
+    "-UserAgent"      => "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0",
+    "-Proxy"          => "",
+    "-ProxyUser"      => "",
+    "-ProxyPass"      => "",
+    "-Debug"          => 0,
     "-SpellTolerance" => "standard",  # on, off
-    "-Morphology" => "standard",      # none, forcedAll
-    "-CharTolerance" => "relaxed",    # fuzzy, exact
-    "-Language" => "en",           # en2de, de2fr, fr2de, de2es, es2de
-
-    "data" => {}, # the results
-    "section" => [],
-    "title" => "",
-    "segments" => [],
-    "Maxsize" => 0,
-    "Linecount" => 0,
+    "-Morphology"     => "standard",      # none, forcedAll
+    "-CharTolerance"  => "relaxed",    # fuzzy, exact
+    "-Language"       => "en",           # en2de, de2fr, fr2de, de2es, es2de
+    "data"            => {}, # the results
+    "section"         => [],
+    "title"           => "",
+    "segments"        => [],
+    "Maxsize"         => 0,
+    "Linecount"       => 0,
   );
 
   foreach my $key (keys %param) {
@@ -57,6 +56,10 @@ sub new {
 
 sub translate {
   my($this, $term) = @_;
+
+  if (! $term) {
+    croak "No term to translate given!";
+  }
 
   my $linecount = 0;
   my $maxsize   = 0;
@@ -459,49 +462,49 @@ Use this method after initialization to connect to dict.leo.org
 and translate the given term. It returns an array of hashes containing
 the actual results.
 
-use WWW::Dict::Leo::Org;
-use Data::Dumper;
-my $leo = new WWW::Dict::Leo::Org();
-my @matches = $leo->translate("test");
-print Dumper(\@matches);
+ use WWW::Dict::Leo::Org;
+ use Data::Dumper;
+ my $leo = new WWW::Dict::Leo::Org();
+ my @matches = $leo->translate("test");
+ print Dumper(\@matches);
 
 which prints:
 
-$VAR1 = [
-{
-'data' => [
-{
-'left' => 'check',
-'right' => 'der Test'
-},
-{
-'left' => 'quiz (Amer.)',
-'right' => 'der Test    [Schule]'
-],
-'title' => 'Unmittelbare Treffer'
-},
-{
-'data' => [
-{
-'left' => 'to fail a test',
-'right' => 'einen Test nicht bestehen'
-},
-{
-'left' => 'to test',
-'right' => 'Tests macheneinen Test machen'
-}
-],
-'title' => 'Verben und Verbzusammensetzungen'
-},
-'data' => [
-{
-'left' => 'testing  adj.',
-'right' => 'im Test'
-}
-],
-'title' => 'Wendungen und Ausdrücke'
-}
-];
+ $VAR1 = [
+         {
+          'data' => [
+                     {
+                      'left' => 'check',
+                      'right' => 'der Test'
+                     },
+                     {
+                      'left' => 'quiz (Amer.)',
+                      'right' => 'der Test    [Schule]'
+                     ],
+                     'title' => 'Unmittelbare Treffer'
+                   },
+          {
+           'data' => [
+                      {
+                       'left' => 'to fail a test',
+                       'right' => 'einen Test nicht bestehen'
+                      },
+                      {
+                       'left' => 'to test',
+                       'right' => 'Tests macheneinen Test machen'
+                      }
+                     ],
+           'title' => 'Verben und Verbzusammensetzungen'
+          },
+          'data' => [
+                     {
+                      'left' => 'testing  adj.',
+                      'right' => 'im Test'
+                     }
+                    ],
+          'title' => 'Wendungen und Ausdrücke'
+         }
+        ];
 
 
 You might take a look at the B<leo> script how to process
@@ -542,6 +545,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.43
+1.44
 
 =cut
