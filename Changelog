@@ -1,3 +1,11 @@
+1.44:
+
+Fixed error handling, added sample code for module usage.
+
+1.43:
+
+Fix POD.
+
 1.42:
 
 Better tabluar output (better column calc). However, russian
