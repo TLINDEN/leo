@@ -3,5 +3,6 @@ Makefile.PL
 README
 leo
 t/run.t
+samples/singular.pl
 Org.pm
 MANIFEST
