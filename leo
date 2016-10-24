@@ -34,7 +34,7 @@ my $default_c = "\033[0m";    # reset default terminal color
 my $bold_c    = "\033[0;34m"; # blue color
 my $copy_c    = "\033[0;35m"; # copyright message color (green)
 
-my $version   = "1.42";
+my $version   = "1.43";
 my $config    = $ENV{HOME} . "/.leo";
 my $cache     = $ENV{HOME} . "/.leo-CACHE.db";
 
@@ -346,7 +346,7 @@ Supported <countrycode>s are:
 en    english
 es    spanish
 ru    russian
-pt    portugese
+pt    portuguese
 pl    polish
 ch    chinese
 
@@ -433,7 +433,7 @@ Default: B<relaxed>.
 Translation direction. Please note that dict.leo.org always translates
 either to or from german.
 
-The following languages are supported: english, polish, spanish, portugese
+The following languages are supported: english, polish, spanish, portuguese
 russian and chinese.
 
 You can  specify only the country  code, or append B<de2>  in order to
@@ -451,7 +451,7 @@ Valid country codes:
 en    english
 es    spanish
 ru    russian
-pt    portugese
+pt    portuguese
 pl    polish
 ch    chinese
 
@@ -669,6 +669,6 @@ browser, what is not prohibited. At least not today.
 
 =head1 VERSION
 
-This is the manpage for B<leo> version B<1.42>.
+This is the manpage for B<leo> version B<1.43>.
 
 =cut

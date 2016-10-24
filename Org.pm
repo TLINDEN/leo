@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "1.44";
+$WWW::Dict::Leo::Org::VERSION = "1.45";
 
 use strict;
 use warnings;
@@ -25,24 +25,24 @@ sub new {
   my $type = ref( $class ) || $class;
 
   my %settings        = (
-    "-Host"           => "pda.leo.org",
-    "-Port"           => 80,
-    "-UserAgent"      => "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0",
-    "-Proxy"          => "",
-    "-ProxyUser"      => "",
-    "-ProxyPass"      => "",
-    "-Debug"          => 0,
-    "-SpellTolerance" => "standard",  # on, off
-    "-Morphology"     => "standard",      # none, forcedAll
-    "-CharTolerance"  => "relaxed",    # fuzzy, exact
-    "-Language"       => "en",           # en2de, de2fr, fr2de, de2es, es2de
-    "data"            => {}, # the results
-    "section"         => [],
-    "title"           => "",
-    "segments"        => [],
-    "Maxsize"         => 0,
-    "Linecount"       => 0,
-  );
+                         "-Host"           => "pda.leo.org",
+                         "-Port"           => 80,
+                         "-UserAgent"      => "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0",
+                         "-Proxy"          => "",
+                         "-ProxyUser"      => "",
+                         "-ProxyPass"      => "",
+                         "-Debug"          => 0,
+                         "-SpellTolerance" => "standard",  # on, off
+                         "-Morphology"     => "standard",      # none, forcedAll
+                         "-CharTolerance"  => "relaxed",    # fuzzy, exact
+                         "-Language"       => "en",           # en2de, de2fr, fr2de, de2es, es2de
+                         "data"            => {}, # the results
+                         "section"         => [],
+                         "title"           => "",
+                         "segments"        => [],
+                         "Maxsize"         => 0,
+                         "Linecount"       => 0,
+                        );
 
   foreach my $key (keys %param) {
     $settings{$key} = $param{$key}; # override defaults
@@ -428,7 +428,7 @@ Possible values: fuzzy, exact, relaxed.
 Translation direction. Please note that dict.leo.org always translates
 either to or from german.
 
-The following languages are supported: english, polish, spanish, portugese
+The following languages are supported: english, polish, spanish, portuguese
 russian and chinese.
 
 You can  specify only the country  code, or append B<de2>  in order to
@@ -446,7 +446,7 @@ Valid country codes:
  en    english
  es    spanish
  ru    russian
- pt    portugese
+ pt    portuguese
  pl    polish
  ch    chinese
 
@@ -545,6 +545,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-1.44
+  1.45
 
 =cut

@@ -1,3 +1,7 @@
+1.45:
+
+fixed rt.cpan.org#118472.
+
 1.44:
 
 Fixed error handling, added sample code for module usage.
