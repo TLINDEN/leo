@@ -16,7 +16,8 @@ use Carp::Heavy;
 use Carp;
 use IO::Socket;
 use MIME::Base64;
-use HTML::TableParser;
+use XML::Simple;
+use Encode;
 
 sub debug;
 
@@ -25,7 +26,7 @@ sub new {
   my $type = ref( $class ) || $class;
 
   my %settings        = (
-                         "-Host"           => "pda.leo.org",
+                         "-Host"           => "dict.leo.org",
                          "-Port"           => 80,
                          "-UserAgent"      => "Mozilla/5.0 (Windows NT 6.3; rv:36.0) Gecko/20100101 Firefox/36.0",
                          "-Proxy"          => "",
@@ -94,23 +95,8 @@ sub translate {
     }
   }
 
-  #
-  # cut invalid values for parameters or set defaults if unspecified
-  #
-  my %form = (
-              spellToler => { mask => [ qw(standard on off) ],         val => $this->{"-SpellTolerance"} || "standard" },
-              deStem     => { mask => [ qw(standard none forcedAll) ], val => $this->{"-Morphology"}     || "standard" },
-              cmpType    => { mask => [ qw(fuzzy exact relaxed) ],     val => $this->{"-CharTolerance"}  || "relaxed"  },
-              searchLoc  => { mask => [ qw(-1 0 1) ],                  val => $this->{"-Language"}       || "0"        },
-             );
-  my @form;
-  foreach my $var (keys %form) {
-    if (grep { $form{$var}->{val} eq $_ } @{$form{$var}->{mask}}) {
-      push @form, $var . "=" . $form{$var}->{val};
-    }
-  }
-
   # add language
+  my @form;
   push @form, "lp=$lang{speak}";
 
   #
@@ -151,7 +137,7 @@ sub translate {
     }
     my($host, $pport) = split /:/, $proxy;
     if ($pport) {
-      $url = "http://$ip:$port/dictQuery/m-vocab/$lang{speak}/de.html";
+      $url = "http://$ip:$port/dictQuery/m-vocab/$lang{speak}/query.xml";
       $port = $pport;
     }
     else {
@@ -162,7 +148,7 @@ sub translate {
   }
   else {
     $this->debug( "connecting to site:", $ip, "port", $port);
-    $url = "/dictQuery/m-vocab/$lang{speak}/de.html";
+    $url = "/dictQuery/m-vocab/$lang{speak}/query.xml";
   }
 
   my $conn = new IO::Socket::INET(
@@ -227,79 +213,64 @@ Accept-Language: en_US, en\r\n);
   close $conn or die "Connection failed: $!\n";
   $this->debug( "connection: done");
 
-  my @request = (
-                 {
-                  id  => 2,
-                  row => sub { $this->row(@_); },
-                  hdr => sub { $this->hdr(@_); }
-                 },
-                 {
-                  id  => 3,
-                  hdr => sub { $this->hdr(@_); },
-                  row => sub { $this->row(@_); }
-                 },
-                 {
-                  id  => 4,
-                  hdr => sub { $this->hdr(@_); },
-                  row => sub { $this->row(@_); }
-                 }
-                );
   $this->{Linecount} = 0;
-  my $p = HTML::TableParser->new( \@request,
-                                  { Decode => 1, Trim => 1, Chomp => 1, DecodeNBSP => 1 } );
-  $site=~s/&#160;/\&nbsp\;/g;
-  $p->parse($site);
+  $this->{Maxsize} = 0;
 
-  # put the rest on the stack, if any
-  if (@{$this->{section}}) {
-    $this->{data}->{ $this->{title} } = $this->{section};
-    push @{$this->{segments}}, $this->{title};
+  # parse the XML
+  my $xml = new XML::Simple;
+  my $data = $xml->XMLin($site,
+    ForceArray => [ 'section', 'entry' ],
+    ForceContent => 1,
+    KeyAttr => { side => 'lang' }
+  );
+
+  my (@matches, $from_lang, $to_lang);
+  $from_lang = substr $lang{speak}, 0, 2;
+  $to_lang   = substr $lang{speak}, 2, 2;
+
+  # parse all the <word>s and build a string
+  sub parse_word($) {
+    my $word = shift;
+    if (ref $word eq "HASH") {
+      if ($word->{content}) {
+        return encode('UTF-8', $word->{content});
+      }
+      elsif ($word->{cc}) {
+        # chinese simplified, traditional and pinyin
+        return encode('UTF-8', $word->{cc}->{cs}->{content} . "[" .
+          $word->{cc}->{ct}->{content} . "] " .
+          $word->{cc}->{pa}->{content});
+      }
+    }
+    elsif (ref $word eq "ARRAY") {
+      return encode('UTF-8', @{$word}[-1]->{content});
+    }
+    else {
+      return encode('UTF-8', $word);
+    }
   }
 
-  # put back in order
-  my @matches;
-  foreach my $title (@{$this->{segments}}) {
-    push @matches, { title => $title, data => $this->{data}->{$title} };
+
+  foreach my $section (@{$data->{sectionlist}->{section}}) {
+    my @entries;
+    foreach my $entry (@{$section->{entry}}) {
+
+      my $left   = parse_word $entry->{side}->{$from_lang}->{words}->{word};
+      my $right  = parse_word $entry->{side}->{$to_lang}->{words}->{word};
+
+      push @entries, { left => $left, right => $right };
+      if ($this->{Maxsize} < length($left)) {
+        $this->{Maxsize} = length($left);
+      }
+      $this->{Linecount}++;
+    }
+    push @matches, {
+      title => encode('UTF-8', $section->{sctTitle}),
+      data => \@entries
+    };
   }
 
   return @matches;
-}
-
-
-sub hdr {
-  # HTML::TableParser header callback
-  my ( $this, $tbl_id, $line_no, $data, $udata ) = @_;
-  if ($data->[1] && $data->[0] eq $data->[1]) {
-    $this->debug("Probable start of a new section: $data->[1]");
-    if (@{$this->{section}}) {
-      $this->{data}->{ $this->{title} } = $this->{section};
-      push @{$this->{segments}}, $this->{title};
-    }
-
-    $this->{title} = $data->[1];
-    $this->{section} = [];
-  }
-}
-
-sub row {
-  # HTML::TableParser data row callback
-  #
-  # divide rows into titles and lang data.
-  # we get 2 items (left and right column), if they
-  # are equal, it's a segment title, otherwise it's
-  # segment content. left columns ending in HH:MM
-  # are forumposts and ignored as well as rows with
-  # empty left cells.
-  my ( $this, $tbl_id, $line_no, $data, $udata ) = @_;
-  my $len = length($data->[0]);
-  if ($data->[1] && $data->[0] && $data->[0] ne $data->[1] && $data->[0] !~ /\d{2}:\d{2}$/) {
-    if ($len > $this->{Maxsize}) {
-      $this->{Maxsize} = $len;
-    }
-    $this->debug("line: $line_no, left:  $data->[0], right: $data->[1]");
-    push @{$this->{section}}, { left => $data->[0], right => $data->[1] };
-    $this->{Linecount}++;
-  }
 }
 
 sub grapheme_length {
@@ -402,30 +373,6 @@ report bugs (see below).
 Parameters to control behavior of dict.leo.org:
 
 =over
-
-=item I<-SpellTolerance>
-
-Be tolerant to spelling errors.
-
-Default: turned on.
-
-Possible values: on, off.
-
-=item I<-Morphology>
-
-Provide morphology information.
-
-Default: standard.
-
-Possible values: standard, none, forcedAll.
-
-=item I<-CharTolerance>
-
-Allow umlaut alternatives.
-
-Default: relaxed.
-
-Possible values: fuzzy, exact, relaxed.
 
 =item I<-Language>
 
