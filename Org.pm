@@ -197,31 +197,35 @@ Accept-Language: en_US, en\r\n);
   #
   # parse dict.leo.org output
   #
-  my @line = <$conn>;
-  close $conn or die "Connection failed: $!\n";
-  $this->debug( "connection: done");
-
-  $site = join "", @line;
-
-  if ($site !~ /HTTP\/1\.(0|1) 200 OK/i) {
-    if ($site =~ /HTTP\/1\.(0|1) (\d+) /i) {
-      # got HTTP error
-      my $err = $2;
-      if ($err == 407) {
-        croak "proxy auth required or access denied!\n";
-      }
-      else {
-        if ($site =~ /Leider konnten wir zu Ihrem Suchbegriff/ ||
-            $site =~ /found no matches for your search/
-           ) {
+  $site = "";
+  my $got_headers = 0;
+  while (<$conn>) {
+    if ($got_headers) {
+      $site .= $_;
+    }
+    elsif (/^\r?$/) {
+      $got_headers = 1;
+    }
+    elsif ($_ !~ /HTTP\/1\.(0|1) 200 OK/i) {
+      if (/HTTP\/1\.(0|1) (\d+) /i) {
+        # got HTTP error
+        my $err = $2;
+        if ($err == 407) {
+          croak "proxy auth required or access denied!\n";
+          close $conn;
           return ();
         }
         else {
           croak "got HTTP error $err!\n";
+          close $conn;
+          return ();
         }
       }
     }
   }
+
+  close $conn or die "Connection failed: $!\n";
+  $this->debug( "connection: done");
 
   my @request = (
                  {
