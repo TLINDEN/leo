@@ -12,7 +12,7 @@ WriteMakefile(
   'PREREQ_PM'    => { 'Carp::Heavy'       => 0,
                       'IO::Socket'        => 0,
                       'MIME::Base64'      => 0,
-		      'HTML::TableParser' => 0
-		    }
+                      'XML::Simple'       => 0
+                    }
 );
 
