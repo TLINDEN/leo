@@ -1,5 +1,5 @@
 #
-# Copyleft (l) 2000-2016 Thomas v.D. <tlinden@cpan.org>.
+# Copyleft (l) 2000-2017 Thomas v.D. <tlinden@cpan.org>.
 #
 # leo may be
 # used and distributed under the terms of the GNU General Public License.
@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "1.45";
+$WWW::Dict::Leo::Org::VERSION = "2.00";
 
 use strict;
 use warnings;
@@ -33,9 +33,6 @@ sub new {
                          "-ProxyUser"      => "",
                          "-ProxyPass"      => "",
                          "-Debug"          => 0,
-                         "-SpellTolerance" => "standard",  # on, off
-                         "-Morphology"     => "standard",      # none, forcedAll
-                         "-CharTolerance"  => "relaxed",    # fuzzy, exact
                          "-Language"       => "en",           # en2de, de2fr, fr2de, de2es, es2de
                          "data"            => {}, # the results
                          "section"         => [],
@@ -228,35 +225,12 @@ Accept-Language: en_US, en\r\n);
   $from_lang = substr $lang{speak}, 0, 2;
   $to_lang   = substr $lang{speak}, 2, 2;
 
-  # parse all the <word>s and build a string
-  sub parse_word($) {
-    my $word = shift;
-    if (ref $word eq "HASH") {
-      if ($word->{content}) {
-        return encode('UTF-8', $word->{content});
-      }
-      elsif ($word->{cc}) {
-        # chinese simplified, traditional and pinyin
-        return encode('UTF-8', $word->{cc}->{cs}->{content} . "[" .
-          $word->{cc}->{ct}->{content} . "] " .
-          $word->{cc}->{pa}->{content});
-      }
-    }
-    elsif (ref $word eq "ARRAY") {
-      return encode('UTF-8', @{$word}[-1]->{content});
-    }
-    else {
-      return encode('UTF-8', $word);
-    }
-  }
-
-
   foreach my $section (@{$data->{sectionlist}->{section}}) {
     my @entries;
     foreach my $entry (@{$section->{entry}}) {
 
-      my $left   = parse_word $entry->{side}->{$from_lang}->{words}->{word};
-      my $right  = parse_word $entry->{side}->{$to_lang}->{words}->{word};
+      my $left   = $this->parse_word($entry->{side}->{$from_lang}->{words}->{word});
+      my $right  = $this->parse_word($entry->{side}->{$to_lang}->{words}->{word});
 
       push @entries, { left => $left, right => $right };
       if ($this->{Maxsize} < length($left)) {
@@ -265,12 +239,35 @@ Accept-Language: en_US, en\r\n);
       $this->{Linecount}++;
     }
     push @matches, {
-      title => encode('UTF-8', $section->{sctTitle}),
-      data => \@entries
-    };
+                    title => encode('UTF-8', $section->{sctTitle}),
+                    data => \@entries
+                   };
   }
 
   return @matches;
+}
+
+# parse all the <word>s and build a string
+sub parse_word {
+  my ($this, $word) = @_;
+  if (ref $word eq "HASH") {
+    if ($word->{content}) {
+      return encode('UTF-8', $word->{content});
+    }
+    elsif ($word->{cc}) {
+      # chinese simplified, traditional and pinyin
+      return encode('UTF-8', $word->{cc}->{cs}->{content} . "[" .
+                    $word->{cc}->{ct}->{content} . "] " .
+                    $word->{cc}->{pa}->{content});
+    }
+  }
+  elsif (ref $word eq "ARRAY") {
+    # FIXME: include alternatives, if any
+    return encode('UTF-8', @{$word}[-1]->{content});
+  }
+  else {
+    return encode('UTF-8', $word);
+  }
 }
 
 sub grapheme_length {
@@ -479,7 +476,7 @@ L<leo>
 
 =head1 COPYRIGHT
 
-WWW::Dict::Leo::Org - Copyright (c) 2007-2016 by Thomas v.D.
+WWW::Dict::Leo::Org - Copyright (c) 2007-2017 by Thomas v.D.
 
 L<http://dict.leo.org/> -
 Copyright (c) 1995-2016 LEO Dictionary Team.
@@ -496,6 +493,6 @@ Please don't forget to add debugging output!
 
 =head1 VERSION
 
-  1.45
+  2.00
 
 =cut

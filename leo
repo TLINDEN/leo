@@ -8,7 +8,7 @@
 # the term to be translated. It will then return the results in
 # an unformatted form.
 #
-# Copyleft (l) 2000-2016 by Thomas v.D. <tlinden@cpan.org>. leo may be
+# Copyleft (l) 2000-2017 by Thomas v.D. <tlinden@cpan.org>. leo may be
 # used and distributed under the terms of the GNU General Public License.
 # All other brand and product names are trademarks, registered trademarks
 # or service marks of their respective holders.
@@ -19,7 +19,6 @@ use utf8;
 
 use strict;
 use Getopt::Long;
-use DB_File;
 use POSIX qw(isatty);
 use WWW::Dict::Leo::Org;
 use Data::Dumper;
@@ -34,7 +33,7 @@ my $default_c = "\033[0m";    # reset default terminal color
 my $bold_c    = "\033[0;34m"; # blue color
 my $copy_c    = "\033[0;35m"; # copyright message color (green)
 
-my $version   = "1.43";
+my $version   = "2.00";
 my $config    = $ENV{HOME} . "/.leo";
 my $cache     = $ENV{HOME} . "/.leo-CACHE.db";
 
@@ -154,12 +153,15 @@ elsif ($conf{use_color} eq "yes") {
 # open the cache, if wanted
 #
 if ($conf{use_cache} eq "yes") {
-  eval { require DB_FileX; };
-  if ($@) {
-    $conf{use_cache} = "no";
-  }
-  else {
-    dbmopen(%CACHE, $cache, 0600) or $conf{use_cache} = "no";
+  $conf{use_cache} = "no";
+  no strict 'subs';
+  foreach my $M (qw(DB_File NDBM_File GDBM_File)) {
+    eval { require $M; };
+    if (! $@) {
+      tie(%CACHE, $M, $cache, O_RDWR|O_CREAT, 0600) or $conf{use_cache} = "no";
+      $conf{use_cache} = "yes";
+      last;
+    }
   }
 }
 
@@ -299,8 +301,8 @@ foreach my $section (@match) {
 
 print "$copy_c" if $highlight;
 print "\n     Fetched by leo $version via http://dict.leo.org/";
-print "\n     Copyright (C) LEO  Dictionary Team 1995-2016";
-print "\n     [leo] GPL Copyleft   Thomas v.D. 2000-2016\n\n";
+print "\n     Copyright (C) LEO  Dictionary Team 1995-2017";
+print "\n     [leo] GPL Copyleft   Thomas v.D. 2000-2017\n\n";
 print "$default_c" if $highlight;
 
 
@@ -326,10 +328,7 @@ sub usage {
   print qq(Usage:   $me [-slmcfuphdv] [<term>]
 Translate a term from german to english or vice versa.
 
-  -s, --spelltolerance=on|off                   allow spelling errors
-  -m, --morphology=none|forcedAll               provide morphology information
-  -c, --chartolerance=fuzzy|exact               allow umlaut alternatives
-  -l, --language=[de2]<countrycode>[2de]        translation direction
+-l, --language=[de2]<countrycode>[2de]        translation direction
 -n, --noescapechars                           dont use escapes for highlighting
 -f, --force                                   don't use the query cache
 -u, --user=username                           user for proxy authentication
@@ -350,15 +349,15 @@ pt    portuguese
 pl    polish
 ch    chinese
 
-You can  specify only the country  code, or append B<de2>  in order to
-force translation to german, or  preprend B<de2> in order to translate
+You can  specify only the country  code, or append de2  in order to
+force translation to german, or  preprend de2 in order to translate
 to the other language. Valid examples:
 
 ru     to or from russian
 de2pl  to polish
 es2de  spanish to german
 
-Report bugs to <tlinden\@cpan.org>.
+Report bugs to <tlinden\@cpan.org> or on https://github.com/TLINDEN/leo/issues.
 );
 
   exit 1;
