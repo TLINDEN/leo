@@ -344,6 +344,7 @@ Supported <countrycode>s are:
 
 en    english
 es    spanish
+fr    french
 ru    russian
 pt    portuguese
 pl    polish
@@ -449,6 +450,7 @@ Valid country codes:
 
 en    english
 es    spanish
+fr    french
 ru    russian
 pt    portuguese
 pl    polish
