@@ -393,6 +393,7 @@ Valid country codes:
 
  en    english
  es    spanish
+ fr    french
  ru    russian
  pt    portuguese
  pl    polish
