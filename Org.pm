@@ -7,7 +7,7 @@
 # or service marks of their respective holders.
 
 package WWW::Dict::Leo::Org;
-$WWW::Dict::Leo::Org::VERSION = "2.01";
+$WWW::Dict::Leo::Org::VERSION = "2.02";
 
 use strict;
 use warnings;

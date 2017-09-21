@@ -33,7 +33,7 @@ my $default_c = "\033[0m";    # reset default terminal color
 my $bold_c    = "\033[0;34m"; # blue color
 my $copy_c    = "\033[0;35m"; # copyright message color (green)
 
-my $version   = "2.01";
+my $version   = "2.02";
 my $config    = $ENV{HOME} . "/.leo";
 my $cache     = $ENV{HOME} . "/.leo-CACHE.db";
 
