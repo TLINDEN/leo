@@ -1,0 +1,23 @@
+# build release
+
+steps:
+  compile:
+    when:
+      event: [tag]
+    image: perl:5.43.5-slim-bookworm
+    commands:
+      - perl Makefile.PL
+      - make
+      - make dist
+
+  release:
+    image: alpine:latest
+    when:
+      event: [tag]
+    environment:
+      DEPLOY_TOKEN:
+        from_secret: DEPLOY_TOKEN
+    commands:
+      - apk update
+      - apk add --no-cache bash httpie jq git
+      - .woodpecker/release.sh ${CI_REPO_NAME}-$CI_COMMIT_TAG.tar.gz

@@ -8,7 +8,7 @@ dict.leo.org now forces SSL via Cloudflare, we follow suit.
 
 2.00:
 
-Fixed rt.cpan.org#119714 rt.cpan.org#120563 and https://github.com/TLINDEN/leo/pull/1:
+Fixed rt.cpan.org#119714 rt.cpan.org#120563 and https://codeberg.org/scip/leo/pull/1:
 We're now implementing the XML interface, since the HTML interface
 is no longer available. Many thanks to Roland Hieber for the help!
 

@@ -358,7 +358,7 @@ ru     to or from russian
 de2pl  to polish
 es2de  spanish to german
 
-Report bugs to <tlinden\@cpan.org> or on https://github.com/TLINDEN/leo/issues.
+Report bugs to <tlinden\@cpan.org> or on https://codeberg.org/scip/leo/issues.
 );
 
   exit 1;

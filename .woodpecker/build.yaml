@@ -1,0 +1,24 @@
+matrix:
+  include:
+    - image: perl:5.36.0-slim-bullseye
+    - image: perl:5.38.0-slim-bookworm
+    - image: perl:5.40.0-slim-bookworm
+    - image: perl:5.42.0-slim-bookworm
+    - image: perl:5.43.5-slim-bookworm
+
+steps:
+  test:
+    when:
+      event: [push]
+    image: ${image}
+    commands:
+      - apt-get update -y
+      - apt-get install -y gcc libexpat1-dev libexpat1
+      - cpanm -n XML::Parser || cat /root/.cpanm/work/*/build.log
+      - cpanm -n DBM::Deep
+      - cpanm -n IO::Socket::SSL
+      - cpanm -n MIME::Base64
+      - cpanm -n XML::Simple
+      - perl Makefile.PL
+      - make
+      - make test
